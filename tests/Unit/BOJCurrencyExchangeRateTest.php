@@ -8,7 +8,7 @@ beforeEach(function () {
     $this->tableId = config('app.boj_currency_exchange_table_id');
     $this->dataTableId = config('app.boj_currency_exchange_data_table_id');
     Http::fake([
-        'https://boj.org.jm/market/foreign-exchange/counter-rates' => Http::response(file_get_contents(__DIR__ . '/../Fixtures/foreign-exchange.html'), 200),
+        'https://boj.org.jm/market/foreign-exchange/counter-rates' => Http::response(file_get_contents(__DIR__.'/../Fixtures/foreign-exchange.html'), 200),
     ]);
 });
 it('can determine the data table Id', function () {
