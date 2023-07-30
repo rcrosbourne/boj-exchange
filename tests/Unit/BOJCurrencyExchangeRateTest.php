@@ -52,3 +52,44 @@ it('can determine the exchange rate for a given date range', function () {
         ->and($exchangeRates)->not->toBeEmpty()
         ->and($exchangeRates)->toContainOnlyInstancesOf(ExchangeRate::class);
 });
+it('can convert BOJ non-standard currency to ISO 4217 standard currency', function (string $bojCurrency, string $expectedISOCurrency) {
+    $isoCurrency = CurrencyExchangeRateService::convertBOJCurrencyToISOCurrency($bojCurrency);
+    expect($isoCurrency)->toBeString()
+        ->and($isoCurrency)->not->toBeEmpty()
+        ->and($isoCurrency)->toEqual($expectedISOCurrency);
+})->with([
+    ['AUSTRALIAN DOLLAR', 'AUD'],
+    ['BAHAMAS DOLLAR', 'BSD'],
+    ['BARBADOS DOLLAR', 'BBD'],
+    ['BELIZE DOLLAR', 'BZD'],
+    ['CANADA DOLLAR', 'CAD'],
+    ['CAYMAN DOLLAR', 'KYD'],
+    ['DANISH KRONA', 'DKK'],
+    ['DANISH KRONE', 'DKK'],
+    ['DOMINICAN REP. PESO', 'DOP'],
+    ['E. C. DOLLAR', 'XCD'],
+    ['EURO', 'EUR'],
+    ['GIBRALTAR POUND', 'GIP'],
+    ['GREAT BRITAIN POUND', 'GBP'],
+    ['GUYANA DOLLAR', 'GYD'],
+    ['HONG KONG DOLLAR', 'HKD'],
+    ['JAMAICA DOLLAR', 'JMD'],
+    ['JAPANESE YEN', 'JPY'],
+    ['NORTHERN IRELAND POUND', 'GBP'],
+    ['NORWEGIAN KRONE', 'NOK'],
+    ['SWEDISH KRONA', 'SEK'],
+    ['SWISS FRANC', 'CHF'],
+    ['T&T DOLLAR', 'TTD'],
+    ['U.S. DOLLAR', 'USD'],
+]);
+it('uses ISO currencies when getting exchange rates', function () {
+    $date = '2023-06-01';
+    $exchangeRates = CurrencyExchangeRateService::getExchangeRates($date);
+    // expect currency to be a valid ISO currency from the list of currencies
+    // returned by the BOJ.
+    $currencies = collect($exchangeRates)->pluck('currency')->unique()->toArray();
+    $validIsoCurrencies = collect(config('app.boj_currency_to_iso_currency_map'))->values()->toArray();
+    expect($currencies)->toBeArray()
+        ->and($currencies)->not->toBeEmpty()
+        ->and($currencies)->toBeSubsetOf($validIsoCurrencies);
+});

@@ -46,3 +46,4 @@ function something()
 {
     // ..
 }
+expect()->extend('toBeSubsetOf', fn (array $superSet) => array_diff($this->value, $superSet) === []);
