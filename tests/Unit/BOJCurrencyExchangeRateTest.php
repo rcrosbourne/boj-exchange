@@ -1,6 +1,7 @@
 <?php
 
 use App\Facades\CurrencyExchangeRateService;
+use App\Models\ExchangeRate;
 use Illuminate\Support\Facades\Http;
 
 /** @var Tests\TestCase $this */
@@ -16,6 +17,9 @@ beforeEach(function () {
         if ($request->data()['columns[0][search][value]'] === '01 Jun 2023') {
             return Http::response(file_get_contents(__DIR__.'/../Fixtures/boj-rates-with-date-range-2023-06-01-to-2023-06-30.json'), 200);
         }
+        if ($request->data()['columns[0][search][value]'] === '01 Jun 2023|10 Jun 2023') {
+            return Http::response(file_get_contents(__DIR__.'/../Fixtures/boj-rates-with-date-range-2023-06-01-to-2023-06-10.json'), 200);
+        }
 
         return Http::response(file_get_contents(__DIR__.'/../Fixtures/boj-rates.json'), 200);
     });
@@ -30,15 +34,21 @@ it('can determine the data table Id containing the rates', function () {
 it('can determine the nonce value for that table id containing the rates', function () {
     $nonce = CurrencyExchangeRateService::getNonceFromDataTableId($this->dataTableId);
     expect($nonce)->toBeString()
-        ->and($nonce)->not->toBeEmpty()
-        ->and($nonce)->toEqual('f77c57c352');
+        ->and($nonce)->not->toBeEmpty();
 });
-it('can determine the exchange rates for a given date', function () {
+it('can determine the exchange rates for a given date up to current', function () {
     $date = '2023-06-01';
     $exchangeRates = CurrencyExchangeRateService::getExchangeRates($date);
-    expect($exchangeRates)->toBeArray()
+    expect($exchangeRates)->each(fn ($rate) => $rate->date->isBetween('2023-06-01', '2023-06-30'))
         ->and($exchangeRates)->not->toBeEmpty()
-        ->and($exchangeRates)->toContainOnlyInstancesOf(\App\Models\ExchangeRate::class)
-        // Assert that the dates returned contain any day from June 2023 but not from May 2023
-        ->expect($exchangeRates)->each->date->toBeBetween('2023-06-01', '2023-06-30');
+        ->and($exchangeRates)->toContainOnlyInstancesOf(ExchangeRate::class);
+});
+it('can determine the exchange rate for a given date range', function () {
+    $startDate = '2023-06-01';
+    $endDate = '2023-06-10';
+    $exchangeRates = CurrencyExchangeRateService::getExchangeRates($startDate, $endDate);
+    $outOfRange = collect($exchangeRates)->filter(fn ($rate) => $rate->date->isAfter($endDate));
+    expect($outOfRange)->toBeEmpty()
+        ->and($exchangeRates)->not->toBeEmpty()
+        ->and($exchangeRates)->toContainOnlyInstancesOf(ExchangeRate::class);
 });

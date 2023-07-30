@@ -25,17 +25,15 @@ class BOJCurrencyExchangeRateService
     }
 
     /**
-     * Get the counter rate page from the BOJ website.
-     *
-     * @param  string  $date The date to get the exchange rates for in the format Y-m-d.
-     * @return array An array of ExchangeRate objects.
-     *
      * @throws Exception
      */
-    public function getExchangeRates(string $date): array
+    public function getExchangeRates(string $startDate, string $endDate = null): array
     {
         // Convert date into a format that the BOJ website expects using Carbon
-        $searchDate = Carbon::createFromFormat('Y-m-d', $date)->format('d M Y');
+        $searchStartDate = Carbon::createFromFormat('Y-m-d', $startDate)->format('d M Y');
+        $searchEndDate = $endDate ? Carbon::createFromFormat('Y-m-d', $endDate)->format('d M Y') : null;
+        // If we have an end date, we need to search for a range of dates.
+        $searchString = $endDate ? "{$searchStartDate}|{$searchEndDate}" : $searchStartDate;
         $nonce = $this->getNonceFromDataTableId($this->getDataTableIdFromHtmlTableId(config('app.boj_currency_exchange_table_id')));
         $response = Http::asForm()->post("{$this->boj_base_url}/wp-admin/admin-ajax.php?action=get_wdtable&table_id=".config('app.boj_currency_exchange_data_table_id'), [
             'draw' => '1',
@@ -46,7 +44,7 @@ class BOJCurrencyExchangeRateService
             'columns[0][data]' => '0',
             'columns[0][searchable]' => 'true',
             'columns[0][orderable]' => 'true',
-            'columns[0][search][value]' => $searchDate,
+            'columns[0][search][value]' => $searchString,
             'columns[0][search][regex]' => 'false',
             'order[0][column]' => '0',
             'order[0][dir]' => 'asc',

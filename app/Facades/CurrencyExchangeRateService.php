@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static string getDataTableIdFromHtmlTableId(string $htmlTableId)
  * @method static string getNonceFromDataTableId(string $dataTableId)
- * @method static string getExchangeRates(string $date)
+ * @method static array getExchangeRates(string $startDate, string $endDate = null)
  */
 class CurrencyExchangeRateService extends Facade
 {
