@@ -6,6 +6,8 @@ use App\Models\ExchangeRate;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,6 +25,32 @@ class BOJCurrencyExchangeRateService
     {
         $this->boj_base_url = config('app.boj_base_url');
         $this->page = $this->getCounterRatePage();
+    }
+
+    public function saveExchangeRates(array $exchangeRates): bool
+    {
+        try {
+            DB::beginTransaction();
+            /** @var ExchangeRate $exchangeRate */
+            foreach ($exchangeRates as $exchangeRate) {
+                $exchangeRate->save();
+            }
+            DB::commit();
+
+            return true;
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            DB::rollBack();
+
+            return false;
+        }
+    }
+
+    public function areExchangeRatesLoaded(string $startDate, string $endDate = null): bool
+    {
+        $exchangeRates = $this->getSavedExchangeRates($startDate, $endDate);
+
+        return $exchangeRates->isNotEmpty();
     }
 
     /**
@@ -76,7 +104,6 @@ class BOJCurrencyExchangeRateService
             ]);
             $exchanges[] = $exchange;
         }
-
         return $exchanges;
     }
 
@@ -88,7 +115,8 @@ class BOJCurrencyExchangeRateService
         $currencyMap = config('app.boj_currency_to_iso_currency_map');
         // throw error if the currency is not found in the map
         if (! Arr::has($currencyMap, $bojCurrency)) {
-            throw new Exception("Currency $bojCurrency not found in currency map");
+            Log::error("Currency '$bojCurrency' not found in currency map");
+            throw new Exception("Currency '$bojCurrency' not found in currency map");
         }
         // return the ISO currency
         return Arr::get($currencyMap, $bojCurrency);
@@ -151,5 +179,15 @@ class BOJCurrencyExchangeRateService
         preg_match_all($pattern, $this->page, $matches, PREG_SET_ORDER);
 
         return $this->groupMatches($matches);
+    }
+
+    private function getSavedExchangeRates(string $startDate, ?string $endDate): Collection
+    {
+        $rates = ExchangeRate::where('date', '>=', $startDate);
+        if ($endDate) {
+            $rates->where('date', '<=', $endDate);
+        }
+
+        return $rates->get();
     }
 }

@@ -93,3 +93,55 @@ it('uses ISO currencies when getting exchange rates', function () {
         ->and($currencies)->not->toBeEmpty()
         ->and($currencies)->toBeSubsetOf($validIsoCurrencies);
 });
+it('can determine if rates are already loaded', function () {
+    //set up exchange rates for 4 days
+    \App\Models\ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'USD',
+        'buy_price' => '153.3627',
+        'sell_price' => '155.8292',
+    ]);
+    \App\Models\ExchangeRate::create([
+        'date' => '2022-06-02',
+        'currency' => 'USD',
+        'buy_price' => '153.3627',
+        'sell_price' => '155.8292',
+    ]);
+    \App\Models\ExchangeRate::create([
+        'date' => '2022-06-03',
+        'currency' => 'USD',
+        'buy_price' => '153.3627',
+        'sell_price' => '155.8292',
+    ]);
+    $startDate = '2022-06-01';
+    $endDate = '2022-06-03';
+    $ratesLoaded = CurrencyExchangeRateService::areExchangeRatesLoaded($startDate, $endDate);
+    expect($ratesLoaded)->toBe(true);
+    $startDate = '2022-06-04';
+    $ratesLoaded = CurrencyExchangeRateService::areExchangeRatesLoaded($startDate);
+    expect($ratesLoaded)->toBe(false);
+});
+it('can persist a collection of exchange rates to the database', function () {
+    $exchangeRates = [
+        new ExchangeRate([
+            'date' => '2022-06-01',
+            'currency' => 'USD',
+            'buy_price' => '153.3627',
+            'sell_price' => '155.8292',
+        ]),
+        new ExchangeRate([
+            'date' => '2022-06-02',
+            'currency' => 'USD',
+            'buy_price' => '153.3627',
+            'sell_price' => '155.8292',
+        ]),
+        new ExchangeRate([
+            'date' => '2022-06-03',
+            'currency' => 'USD',
+            'buy_price' => '153.3627',
+            'sell_price' => '155.8292',
+        ]),
+    ];
+    $savedExchangeRates = CurrencyExchangeRateService::saveExchangeRates($exchangeRates);
+    expect($savedExchangeRates)->toBe(true);
+});
