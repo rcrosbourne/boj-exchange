@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Facades\CurrencyExchangeRateService;
 use App\Models\ExchangeRate;
 use Illuminate\Support\Facades\Http;

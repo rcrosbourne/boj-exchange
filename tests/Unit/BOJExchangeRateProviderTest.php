@@ -1,86 +1,105 @@
 <?php
 
-use Brick\Money\Context\DefaultContext;
+declare(strict_types=1);
+
+use App\Facades\CurrencyExchangeRateService;
+use App\Models\ExchangeRate;
+use Brick\Money\Exception\CurrencyConversionException;
 use Brick\Money\Money;
 
 it('can covert USD to JMD and USD to JMD', function () {
     // Set up Exchange Rates
-    \App\Models\ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'USD',
         'buy_price' => '153.3627',
         'sell_price' => '155.8292',
     ]);
-    // Set up provider
-    $exchangeRateProvider = new \App\Services\BOJExchangeRateProvider([
-        'start_date' => '2022-06-01',
-    ]);
-    // Create base currency provider
-    $baseCurrencyProvider = new \Brick\Money\ExchangeRateProvider\BaseCurrencyProvider($exchangeRateProvider, 'JMD');
-
-    // Convert USD to JMD
-    $exchangeRateJMDToUSD = $baseCurrencyProvider->getExchangeRate('JMD', 'USD');
-    $exchangeRateUSDToJMD = $baseCurrencyProvider->getExchangeRate('USD', 'JMD');
-
-    expect($exchangeRateJMDToUSD->toFloat())->toBe(155.8292)
-        ->and($exchangeRateUSDToJMD->toScale(4, \Brick\Math\RoundingMode::HALF_EVEN)->toFloat())->toBe(0.0064);
-    // Now lets try convert USD to JMD based on the exchange rate
-    $usd = Money::of(100, 'USD');
-    $jmd = Money::of(100, 'JMD');
-    $asJmd = $usd->convertedTo('JMD', $exchangeRateJMDToUSD, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    $asUsd = $jmd->convertedTo('USD', $exchangeRateUSDToJMD, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    expect($asJmd->getAmount()->toFloat())->toBe(15582.92)
-        ->and($asUsd->getAmount()->toFloat())->toBe(0.64);
+    $exchangeRateJMDToUSD = CurrencyExchangeRateService::getExchangeRatesForCurrency('JMD', 'USD');
+    $exchangeRateUSDToJMD = CurrencyExchangeRateService::getExchangeRatesForCurrency('USD', 'JMD', '2022-06-01');
+    expect($exchangeRateJMDToUSD->getAmount()->toFloat())->toBe(155.8292)
+        ->and($exchangeRateUSDToJMD->getAmount()->toFloat())->toBe(0.0064);
+    $usd = Money::of(1000, 'USD');
+    $jmd = Money::of(1000, 'JMD');
+    $convertToJmd = CurrencyExchangeRateService::convertTo('JMD', $usd, '2022-06-01');
+    $convertToUsd = CurrencyExchangeRateService::convertTo('USD', $jmd);
+    expect($convertToJmd->getAmount()->toFloat())->toBe(155829.200)
+        ->and($convertToUsd->getAmount()->toFloat())->toBe(6.40);
 });
+it('throws an exception if the exchange rate is not available', function () {
+    ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'USD',
+        'buy_price' => '153.3627',
+        'sell_price' => '155.8292',
+    ]);
+    $usd = Money::of(1000, 'USD');
+    CurrencyExchangeRateService::convertTo('CAD', $usd);
+})->throws(CurrencyConversionException::class, 'No exchange rate available to convert JMD to CAD (Missing exchange rate for CAD on 2022-06-01)');
+
 it('can convert between USD and GBP through JMD', function () {
     // Set up Exchange Rates
-    \App\Models\ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'USD',
         'buy_price' => '153.3627',
         'sell_price' => '155.8292',
     ]);
-    \App\Models\ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'GBP',
         'buy_price' => '186.5375',
         'sell_price' => '193.3157',
     ]);
-    // Set up provider
-    $exchangeRateProvider = new \App\Services\BOJExchangeRateProvider([
-        'start_date' => '2022-06-01',
-    ]);
-    // Create base currency provider
-    $baseCurrencyProvider = new \Brick\Money\ExchangeRateProvider\BaseCurrencyProvider($exchangeRateProvider, 'JMD');
-
     // Convert USD to JMD
-    $exchangeRateJMDToUSD = $baseCurrencyProvider->getExchangeRate('JMD', 'USD');
-    $exchangeRateUSDToJMD = $baseCurrencyProvider->getExchangeRate('USD', 'JMD');
-    $exchangeRateJMDToGBP = $baseCurrencyProvider->getExchangeRate('JMD', 'GBP');
-    $exchangeRateGBPToJMD = $baseCurrencyProvider->getExchangeRate('GBP', 'JMD');
-    $exchangeRateUSDToGBP = $baseCurrencyProvider->getExchangeRate('USD', 'GBP');
-    $exchangeRateGBPToUSD = $baseCurrencyProvider->getExchangeRate('GBP', 'USD');
-    expect($exchangeRateJMDToUSD->toFloat())->toBe(155.8292)
-        ->and($exchangeRateUSDToJMD->toScale(4, \Brick\Math\RoundingMode::HALF_EVEN)->toFloat())->toBe(0.0064);
+    $exchangeRateJMDToUSD = CurrencyExchangeRateService::getExchangeRatesForCurrency('JMD', 'USD');
+    $exchangeRateUSDToJMD = CurrencyExchangeRateService::getExchangeRatesForCurrency('USD', 'JMD');
+    $exchangeRateJMDToGBP = CurrencyExchangeRateService::getExchangeRatesForCurrency('JMD', 'GBP');
+    $exchangeRateGBPToJMD = CurrencyExchangeRateService::getExchangeRatesForCurrency('GBP', 'JMD');
+    $exchangeRateUSDToGBP = CurrencyExchangeRateService::getExchangeRatesForCurrency('USD', 'GBP');
+    $exchangeRateGBPToUSD = CurrencyExchangeRateService::getExchangeRatesForCurrency('GBP', 'USD');
+    expect($exchangeRateJMDToUSD->getAmount()->toFloat())->toBe(155.8292)
+        ->and($exchangeRateUSDToJMD->getAmount()->toFloat())->toBe(0.0064)
+        ->and($exchangeRateJMDToGBP->getAmount()->toFloat())->toBe(193.3157)
+        ->and($exchangeRateGBPToJMD->getAmount()->toFloat())->toBe(0.0052)
+        ->and($exchangeRateUSDToGBP->getAmount()->toFloat())->toBe(1.2406)
+        ->and($exchangeRateGBPToUSD->getAmount()->toFloat())->toBe(0.8061);
 
-    // Now lets try convert USD to JMD based on the exchange rate
-    $usd = Money::of('100.00', 'USD');
-    $jmd = Money::of('100.00', 'JMD');
-    $asJmd = $usd->convertedTo('JMD', $exchangeRateJMDToUSD, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    $asUsd = $jmd->convertedTo('USD', $exchangeRateUSDToJMD, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    expect($asJmd->getAmount()->toFloat())->toBe(15582.92)
-        ->and($asUsd->getAmount()->toFloat())->toBe(0.64)
-        ->and($exchangeRateJMDToGBP->toFloat())->toBe(193.3157)
-        ->and($exchangeRateGBPToJMD->toScale(4, \Brick\Math\RoundingMode::HALF_EVEN)->toFloat())->toBe(0.0052)
-//        USD to GBP through JMD
-        ->and($exchangeRateUSDToGBP->toScale(4, \Brick\Math\RoundingMode::HALF_EVEN)->toFloat())->toBe(1.2406)
-//        GBP to USD through JMD
-        ->and($exchangeRateGBPToUSD->toScale(4, \Brick\Math\RoundingMode::HALF_EVEN)->toFloat())->toBe(0.8061);
+    // Now lets try convert USD to GBP based on the exchange rate
+    $usd = Money::of(100, 'USD');
+    $gbp = Money::of(100, 'GBP');
+    $convertToGbp = CurrencyExchangeRateService::convertTo('GBP', $usd);
+    $convertToUsd = CurrencyExchangeRateService::convertTo('USD', $gbp);
+    expect($convertToGbp->getAmount()->toFloat())->toBe(80.61)->and($convertToUsd->getAmount()->toFloat())->toBe(124.06);
+});
+it('can retrieves supported currencies', function () {
+    // Given I have some exchange records
+    $usdExchangeRate = ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'USD',
+        'buy_price' => '153.3627',
+        'sell_price' => '155.8292',
+    ]);
+    $gbpExchangeRate = ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'GBP',
+        'buy_price' => '186.5375',
+        'sell_price' => '193.3157',
 
-    $usd = Money::of('100.00', 'USD');
-    $gbp = Money::of('100.00', 'GBP');
-    $asGBP = $usd->convertedTo('GBP', $exchangeRateUSDToGBP, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    $asUSD = $gbp->convertedTo('USD', $exchangeRateGBPToUSD, new DefaultContext(), \Brick\Math\RoundingMode::HALF_EVEN);
-    expect($asGBP->getAmount()->toFloat())->toBe(124.06)
-        ->and($asUSD->getAmount()->toFloat())->toBe(80.61);
+    ]);
+    $cadExchangeRate = ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'CAD',
+        'buy_price' => '120.5375',
+        'sell_price' => '123.3157',
+    ]);
+    // When I retrieve the supported currencies
+    $supportedCurrencies = CurrencyExchangeRateService::getSupportedCurrencies();
+    // Then I should get a list of supported currencies
+    expect($supportedCurrencies)->toBeArray()
+        ->and($supportedCurrencies)->toContain('USD')
+        ->and($supportedCurrencies)->toContain('GBP')
+        ->and($supportedCurrencies)->toContain('CAD')
+        ->and($supportedCurrencies)->toContain('JMD')
+        ->and($supportedCurrencies)->not()->toContain('EUR');
 });

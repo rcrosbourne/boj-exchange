@@ -1,5 +1,6 @@
-import {Head, Link} from '@inertiajs/react';
+import {Head, Link, useForm, usePage} from '@inertiajs/react';
 import {PageProps} from '@/types';
+import React, {useState} from "react";
 
 export default function Welcome({auth, laravelVersion, phpVersion}: PageProps<{
     laravelVersion: string,
@@ -10,12 +11,45 @@ export default function Welcome({auth, laravelVersion, phpVersion}: PageProps<{
         {name: 'GBP', value: '$203.85', change: '+$4.02', changeType: 'negative'},
         {name: 'CAD', value: '$110.32', change: '-1.39%', changeType: 'positive'},
         {name: 'EUR', value: '$163.21', change: '+10.18%', changeType: 'negative'},
-    ]
+    ];
+    const {supportedCurrencies} = usePage<{ supportedCurrencies: string[] }>().props
+
+    const [sourceCurrency, setSourceCurrency] = useState<string | null>(null);
+    const [targetCurrency, setTargetCurrency] = useState<string | null>(null);
+    const {data, setData, post, processing, errors} = useForm({
+        sourceCurrency,
+        targetCurrency,
+        sourceAmount: "0",
+        targetAmount: "0",
+    });
+
+    function onSourceAmountChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const sourceAmount = event.target.value;
+        const targetAmount = "0";
+        setData('sourceAmount', sourceAmount);
+        setData('targetAmount', targetAmount);
+    }
+    function onSourceCurrencyChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        // if source currency is the same as target currency, swap them
+        if (targetCurrency === event.target.value) {
+            setTargetCurrency(sourceCurrency);
+        }
+        setSourceCurrency(event.target.value);
+    }
+
+    function onTargetCurrencyChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        // if target currency is the same as source currency, swap them
+        if (sourceCurrency === event.target.value) {
+            setSourceCurrency(targetCurrency);
+        }
+        setTargetCurrency(event.target.value);
+    }
 
     function classNames(...classes: string[]) {
         return classes.filter(Boolean).join(' ')
     }
 
+    console.log({supportedCurrencies});
     return (
         <>
             <Head title="Welcome"/>
@@ -87,24 +121,29 @@ export default function Welcome({auth, laravelVersion, phpVersion}: PageProps<{
                                     </div>
                                     <input
                                         type="text"
-                                        name="price"
-                                        id="price"
+                                        name="sourceCurrency"
+                                        id="sourceCurrency"
                                         className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         placeholder="0.00"
+                                        value={data.sourceAmount}
+                                        onChange={e => setData('sourceAmount', e.target.value)}
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center">
                                         <label htmlFor="currency" className="sr-only">
                                             Currency
                                         </label>
                                         <select
-                                            id="currency"
-                                            name="currency"
+                                            id="sourceCurrency"
+                                            name="sourceCurrency"
+                                            value={sourceCurrency || "JMD"}
+                                            onChange={onSourceCurrencyChange}
                                             className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
                                         >
-                                            <option>USD</option>
-                                            <option>CAD</option>
-                                            <option>EUR</option>
-                                            <option>JMD</option>
+                                            {supportedCurrencies && supportedCurrencies.map((currency) => (
+                                                <option key={currency} value={currency}>
+                                                    {currency}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
@@ -120,24 +159,29 @@ export default function Welcome({auth, laravelVersion, phpVersion}: PageProps<{
                                     </div>
                                     <input
                                         type="text"
-                                        name="price"
-                                        id="price"
+                                        name="targetAmount"
+                                        id="targetAmount"
                                         className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         placeholder="0.00"
+                                        value={data.targetAmount}
+                                        onChange={e => setData('targetAmount', e.target.value)}
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center">
                                         <label htmlFor="currency" className="sr-only">
                                             Currency
                                         </label>
                                         <select
-                                            id="currency"
-                                            name="currency"
+                                            id="targetCurrency"
+                                            name="targetCurrency"
                                             className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                                            value={targetCurrency || "USD"}
+                                            onChange={onTargetCurrencyChange}
                                         >
-                                            <option>USD</option>
-                                            <option>CAD</option>
-                                            <option>EUR</option>
-                                            <option>JMD</option>
+                                            {supportedCurrencies && supportedCurrencies.map((currency) => (
+                                                <option key={currency} value={currency} selected={currency === "USD"}>
+                                                    {currency}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
