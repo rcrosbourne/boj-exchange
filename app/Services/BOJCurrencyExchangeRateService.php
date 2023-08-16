@@ -237,7 +237,7 @@ class BOJCurrencyExchangeRateService
         foreach ($rates as $rate) {
             $exchange = new ExchangeRate([
                 'date' => Arr::get($rate, 0),
-                'currency' => $this->convertBOJCurrencyToISOCurrency(Str::of(Arr::get($rate, 1))->trim()),
+                'currency' => $this->convertBOJCurrencyToISOCurrency(Str::of(Arr::get($rate, 1))->trim()->toString()),
                 'buy_price' => Arr::get($rate, 2),
                 'notes' => Arr::get($rate, 3),
                 'coins' => Arr::get($rate, 4),
