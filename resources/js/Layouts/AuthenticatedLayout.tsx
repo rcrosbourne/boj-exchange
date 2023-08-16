@@ -1,8 +1,8 @@
 import {PropsWithChildren, ReactNode, useState} from 'react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import ApplicationLogo from '@/Components/Laravel/ApplicationLogo';
+import Dropdown from '@/Components/Laravel/Dropdown';
+import NavLink from '@/Components/Laravel/NavLink';
+import ResponsiveNavLink from '@/Components/Laravel/ResponsiveNavLink';
 import {Link} from '@inertiajs/react';
 import {User} from '@/types';
 

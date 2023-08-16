@@ -1,203 +1,186 @@
-import {Head, Link, useForm, usePage} from '@inertiajs/react';
-import {PageProps} from '@/types';
-import React, {useState} from "react";
+import React from "react";
+import TeamSwitcher from "@/Components/ShadcnUI/ThemeSwitcher";
 
-export default function Welcome({auth, laravelVersion, phpVersion}: PageProps<{
-    laravelVersion: string,
-    phpVersion: string
-}>) {
-    const stats = [
-        {name: 'USD', value: '$156.21', change: '+$0.75', changeType: 'positive'},
-        {name: 'GBP', value: '$203.85', change: '+$4.02', changeType: 'negative'},
-        {name: 'CAD', value: '$110.32', change: '-1.39%', changeType: 'positive'},
-        {name: 'EUR', value: '$163.21', change: '+10.18%', changeType: 'negative'},
-    ];
-    const {supportedCurrencies} = usePage<{ supportedCurrencies: string[] }>().props
-
-    const [sourceCurrency, setSourceCurrency] = useState<string | null>(null);
-    const [targetCurrency, setTargetCurrency] = useState<string | null>(null);
-    const {data, setData, post, processing, errors} = useForm({
-        sourceCurrency,
-        targetCurrency,
-        sourceAmount: "0",
-        targetAmount: "0",
-    });
-
-    function onSourceAmountChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const sourceAmount = event.target.value;
-        const targetAmount = "0";
-        setData('sourceAmount', sourceAmount);
-        setData('targetAmount', targetAmount);
-    }
-    function onSourceCurrencyChange(event: React.ChangeEvent<HTMLSelectElement>) {
-        // if source currency is the same as target currency, swap them
-        if (targetCurrency === event.target.value) {
-            setTargetCurrency(sourceCurrency);
-        }
-        setSourceCurrency(event.target.value);
-    }
-
-    function onTargetCurrencyChange(event: React.ChangeEvent<HTMLSelectElement>) {
-        // if target currency is the same as source currency, swap them
-        if (sourceCurrency === event.target.value) {
-            setSourceCurrency(targetCurrency);
-        }
-        setTargetCurrency(event.target.value);
-    }
-
-    function classNames(...classes: string[]) {
-        return classes.filter(Boolean).join(' ')
-    }
-
-    console.log({supportedCurrencies});
+export default function Welcome() {
     return (
         <>
-            <Head title="Welcome"/>
-            <div
-                className="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white">
-                <div className="sm:fixed sm:top-0 sm:right-0 p-6 text-right">
-                    {auth.user ? (
-                        <Link
-                            href={route('dashboard')}
-                            className="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                        >
-                            Dashboard
-                        </Link>
-                    ) : (
-                        <>
-                            <Link
-                                href={route('login')}
-                                className="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                            >
-                                Log in
-                            </Link>
-
-                            <Link
-                                href={route('register')}
-                                className="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                            >
-                                Register
-                            </Link>
-                        </>
-                    )}
-                </div>
-                <div className="flex flex-col text-slate-100">
-                    <dl className="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-4">
-                        {stats.map((stat) => (
-                            <div
-                                key={stat.name}
-                                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8"
-                            >
-                                <dt className="text-sm font-medium leading-6 text-gray-500">{stat.name}</dt>
-                                <dd
-                                    className={classNames(
-                                        stat.changeType === 'negative' ? 'text-rose-600' : 'text-gray-700',
-                                        'text-xs font-medium'
-                                    )}
-                                >
-                                    {stat.change}
-                                </dd>
-                                <dd className="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
-                                    {stat.value}
-                                </dd>
-                            </div>
-                        ))}
-                    </dl>
-                    <h2 className="">BOJ Exchange Rate</h2>
-
-                    <div>
-                        <p>1 United States Dollar equals</p>
-                        <p>154.70 Jamaican Dollar</p>
-                        <p>31 Jul, 11:19am UTC</p>
-                        <form>
-                            <div>
-                                <label htmlFor="price" className="block text-sm font-medium leading-6 text-gray-900">
-                                    Price
-                                </label>
-                                <div className="relative mt-2 rounded-md shadow-sm sm:max-w-xs">
-                                    <div
-                                        className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <span className="text-gray-500 sm:text-sm">$</span>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        name="sourceCurrency"
-                                        id="sourceCurrency"
-                                        className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                        placeholder="0.00"
-                                        value={data.sourceAmount}
-                                        onChange={e => setData('sourceAmount', e.target.value)}
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center">
-                                        <label htmlFor="currency" className="sr-only">
-                                            Currency
-                                        </label>
-                                        <select
-                                            id="sourceCurrency"
-                                            name="sourceCurrency"
-                                            value={sourceCurrency || "JMD"}
-                                            onChange={onSourceCurrencyChange}
-                                            className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                                        >
-                                            {supportedCurrencies && supportedCurrencies.map((currency) => (
-                                                <option key={currency} value={currency}>
-                                                    {currency}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label htmlFor="price" className="block text-sm font-medium leading-6 text-gray-900">
-                                    Price
-                                </label>
-                                <div className="relative mt-2 rounded-md shadow-sm">
-                                    <div
-                                        className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <span className="text-gray-500 sm:text-sm">$</span>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        name="targetAmount"
-                                        id="targetAmount"
-                                        className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                        placeholder="0.00"
-                                        value={data.targetAmount}
-                                        onChange={e => setData('targetAmount', e.target.value)}
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center">
-                                        <label htmlFor="currency" className="sr-only">
-                                            Currency
-                                        </label>
-                                        <select
-                                            id="targetCurrency"
-                                            name="targetCurrency"
-                                            className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                                            value={targetCurrency || "USD"}
-                                            onChange={onTargetCurrencyChange}
-                                        >
-                                            {supportedCurrencies && supportedCurrencies.map((currency) => (
-                                                <option key={currency} value={currency} selected={currency === "USD"}>
-                                                    {currency}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <button
-                                    type="button"
-                                    className="rounded-md bg-white/10 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-white/20"
-                                >
-                                    Button text
-                                </button>
-                            </div>
-                        </form>
+            <div className="md:hidden">
+                <img
+                    src="/examples/dashboard-light.png"
+                    width={1280}
+                    height={866}
+                    alt="Dashboard"
+                    className="block dark:hidden"
+                />
+                <img
+                    src="/examples/dashboard-dark.png"
+                    width={1280}
+                    height={866}
+                    alt="Dashboard"
+                    className="hidden dark:block"
+                />
+            </div>
+            <div className="hidden flex-col md:flex">
+                <div className="border-b">
+                    <div className="flex h-16 items-center px-4">
+                        <TeamSwitcher/>
+                        <MainNav className="mx-6"/>
+                        <div className="ml-auto flex items-center space-x-4">
+                            <Search/>
+                            <UserNav/>
+                        </div>
                     </div>
+                </div>
+                <div className="flex-1 space-y-4 p-8 pt-6">
+                    <div className="flex items-center justify-between space-y-2">
+                        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+                        <div className="flex items-center space-x-2">
+                            <CalendarDateRangePicker/>
+                            <Button>Download</Button>
+                        </div>
+                    </div>
+                    <Tabs defaultValue="overview" className="space-y-4">
+                        <TabsList>
+                            <TabsTrigger value="overview">Overview</TabsTrigger>
+                            <TabsTrigger value="analytics" disabled>
+                                Analytics
+                            </TabsTrigger>
+                            <TabsTrigger value="reports" disabled>
+                                Reports
+                            </TabsTrigger>
+                            <TabsTrigger value="notifications" disabled>
+                                Notifications
+                            </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="overview" className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">
+                                            Total Revenue
+                                        </CardTitle>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            className="h-4 w-4 text-muted-foreground"
+                                        >
+                                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                        </svg>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">$45,231.89</div>
+                                        <p className="text-xs text-muted-foreground">
+                                            +20.1% from last month
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">
+                                            Subscriptions
+                                        </CardTitle>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            className="h-4 w-4 text-muted-foreground"
+                                        >
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">+2350</div>
+                                        <p className="text-xs text-muted-foreground">
+                                            +180.1% from last month
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            className="h-4 w-4 text-muted-foreground"
+                                        >
+                                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                            <path d="M2 10h20"/>
+                                        </svg>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">+12,234</div>
+                                        <p className="text-xs text-muted-foreground">
+                                            +19% from last month
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">
+                                            Active Now
+                                        </CardTitle>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            className="h-4 w-4 text-muted-foreground"
+                                        >
+                                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                        </svg>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">+573</div>
+                                        <p className="text-xs text-muted-foreground">
+                                            +201 since last hour
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                                <Card className="col-span-4">
+                                    <CardHeader>
+                                        <CardTitle>Overview</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pl-2">
+                                        <Overview/>
+                                    </CardContent>
+                                </Card>
+                                <Card className="col-span-3">
+                                    <CardHeader>
+                                        <CardTitle>Recent Sales</CardTitle>
+                                        <CardDescription>
+                                            You made 265 sales this month.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <RecentSales/>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
         </>
-    );
+    )
 }

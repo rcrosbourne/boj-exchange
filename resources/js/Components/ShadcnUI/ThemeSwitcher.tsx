@@ -12,9 +12,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger
-} from "@/Components/UI/Dialog";
-import {Button} from "@/Components/UI/Button";
-import {Avatar, AvatarFallback, AvatarImage} from "@/Components/UI/Avatar";
+} from "@/Components/ShadcnUI/Dialog";
+import {Button} from "@/Components/ShadcnUI/Button";
+import {Avatar, AvatarFallback, AvatarImage} from "@/Components/ShadcnUI/Avatar";
 import {
     Command,
     CommandEmpty,
@@ -23,11 +23,11 @@ import {
     CommandItem,
     CommandList,
     CommandSeparator
-} from "@/Components/UI/Command";
-import {Popover, PopoverContent, PopoverTrigger} from "@/Components/UI/Popover";
-import {Label} from "@/Components/UI/Label";
-import {Input} from "@/Components/UI/Input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/Components/UI/Select";
+} from "@/Components/ShadcnUI/Command";
+import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ShadcnUI/Popover";
+import {Label} from "@/Components/ShadcnUI/Label";
+import {Input} from "@/Components/ShadcnUI/Input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/Components/ShadcnUI/Select";
 
 const groups = [
     {
