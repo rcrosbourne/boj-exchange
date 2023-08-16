@@ -1,5 +1,14 @@
 import React from "react";
 import TeamSwitcher from "@/Components/ShadcnUI/ThemeSwitcher";
+import {MainNav} from "@/Components/ShadcnUI/MainNav";
+import {Search} from "@/Components/ShadcnUI/Search";
+import {UserNav} from "@/Components/ShadcnUI/UserNav";
+import {CalendarDateRangePicker} from "@/Components/ShadcnUI/DateRangePicker";
+import {Button} from "@/Components/ShadcnUI/Button";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/Components/ShadcnUI/Tabs";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/Components/ShadcnUI/card";
+import {Overview} from "@/Components/ShadcnUI/Overview";
+import {RecentSales} from "@/Components/ShadcnUI/RecentSales";
 
 export default function Welcome() {
     return (
