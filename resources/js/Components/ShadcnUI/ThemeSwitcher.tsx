@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import {CaretSortIcon, CheckIcon, PlusCircledIcon,} from "@radix-ui/react-icons"
 
