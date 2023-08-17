@@ -7,6 +7,12 @@ export interface User {
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     supportedCurrencies: string[];
+    sourceCurrencyCode: string;
+    sourceAmount: string;
+    targetCurrencyCode: string;
+    targetAmount: number;
+    exchangeRateDate: string;
+    exchangeRate: number;
     auth: {
         user: User;
     };

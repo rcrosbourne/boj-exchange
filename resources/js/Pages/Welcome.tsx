@@ -1,10 +1,51 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {PageProps} from "@/types";
 import CurrencySwitcher from "@/Components/ShadcnUI/CurrencySwitcher";
+import {Input} from "@/Components/ShadcnUI/Input";
+import {DatePicker} from "@/Components/ShadcnUI/DatePicker";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/Components/ShadcnUI/Card";
+import {router, usePage} from '@inertiajs/react'
+import {Skeleton} from "@/Components/ShadcnUI/Skeleton";
 
-export default function Welcome({supportedCurrencies}: PageProps) {
-    const [sourceCurrency, setSourceCurrency] = React.useState('JMD')
-    const [targetCurrency, setTargetCurrency] = React.useState('USD')
+export default function Welcome({supportedCurrencies, targetAmount, exchangeRate}: PageProps) {
+    const {errors} = usePage().props
+
+    const [sourceCurrency, setSourceCurrency] = React.useState('USD')
+    const [sourceAmount, setSourceAmount] = React.useState("")
+    const [targetCurrency, setTargetCurrency] = React.useState('JMD')
+    const [exchangeRateDate, setExchangeRateDate] = React.useState<Date | undefined>(new Date())
+    const [isLoading, setIsLoading] = React.useState(false);
+    // const [conversionRate, setConversionRate] = React.useState("");
+    // const [targetAmount, setTargetAmount] = React.useState("");
+
+    router.on('start', (event) => {
+        setIsLoading(true)
+    });
+    router.on('finish', (event) => {
+        setIsLoading(false)
+    });
+
+    async function update() {
+        if (!sourceAmount) return;
+        console.log({sourceAmount, sourceCurrency, targetCurrency, exchangeRateDate});
+        router.post('/convert', {
+            'source_currency_code': sourceCurrency,
+            'source_amount': sourceAmount,
+            'target_currency_code': targetCurrency,
+            'exchange_rate_date': exchangeRateDate?.toISOString().split('T')[0]
+        });
+    }
+
+    useEffect(() => {
+        void update();
+    }, [sourceAmount, sourceCurrency, targetCurrency, exchangeRateDate])
+
+    function currencyFormatter(currency: string) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency,
+        });
+    }
     return (
         <>
             <div className="hidden flex-col md:flex">
@@ -12,14 +53,56 @@ export default function Welcome({supportedCurrencies}: PageProps) {
                     <div className="flex items-center justify-between space-y-2">
                         <h2 className="text-3xl font-bold tracking-tight">Bank of Jamaica - Exchange Rates</h2>
                     </div>
-                    <CurrencySwitcher supportedCurrencies={supportedCurrencies}
-                                      defaultCurrency={'JMD'}
-                                      selectedCurrency={sourceCurrency}
-                                      setSelectedCurrency={setSourceCurrency}/>
-                    <CurrencySwitcher supportedCurrencies={supportedCurrencies}
-                                      defaultCurrency={'USD'}
-                                      selectedCurrency={targetCurrency}
-                                      setSelectedCurrency={setTargetCurrency}/>
+                    <div className="flex gap-2">
+                        <Input value={sourceAmount}
+                               onChange={(e) => setSourceAmount(e.target.value)}
+                               placeholder={'Enter amount'}/>
+
+                        <CurrencySwitcher supportedCurrencies={supportedCurrencies}
+                                          defaultCurrency={'JMD'}
+                                          selectedCurrency={sourceCurrency}
+                                          setSelectedCurrency={setSourceCurrency}/>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <p>Converted to</p>
+                        <CurrencySwitcher supportedCurrencies={supportedCurrencies}
+                                          defaultCurrency={'USD'}
+                                          selectedCurrency={targetCurrency}
+                                          setSelectedCurrency={setTargetCurrency}/>
+                        <p>using counter rates on </p>
+                        <DatePicker date={exchangeRateDate} setDate={setExchangeRateDate}/>
+                    </div>
+                    {isLoading &&
+                        <div className="border rounded-lg p-6">
+                            <div className="flex items-center space-x-4">
+                                <div className="space-y-2">
+                                    <Skeleton className="h-8 w-[180px]"/>
+                                    <Skeleton className="h-4 w-[500px]"/>
+                                    <Skeleton className="h-4 w-[500px]"/>
+                                </div>
+                            </div>
+                            <Skeleton className="h-4 w-full mt-10"/>
+                        </div>
+                    }
+                    {!isLoading && <Card>
+                        <CardHeader>
+                            <CardTitle>{currencyFormatter(targetCurrency).format(targetAmount)}</CardTitle>
+                            <CardDescription>
+                                <p>{currencyFormatter(sourceCurrency).format(parseFloat(sourceAmount))} {sourceCurrency} converted
+                                    to {targetCurrency} using the BOJ rates
+                                    for {exchangeRateDate && exchangeRateDate >= new Date() ? "today" : exchangeRateDate?.toDateString()}</p>
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col space-y-2">
+                                <div className="flex justify-between">
+                                    <p>Exchange Rate</p>
+                                    <p>1 {sourceCurrency} = {currencyFormatter(targetCurrency).format(exchangeRate)} {targetCurrency}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    }
                 </div>
             </div>
         </>

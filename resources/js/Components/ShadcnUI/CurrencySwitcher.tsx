@@ -15,7 +15,7 @@ interface CurrencySwitcher extends PopoverTriggerProps {
   setSelectedCurrency: (currency: string) => void;
 }
 
-export default function TeamSwitcher({className, supportedCurrencies, defaultCurrency, selectedCurrency, setSelectedCurrency}: CurrencySwitcher) {
+export default function CurrencySwitcher({className, supportedCurrencies, defaultCurrency, selectedCurrency, setSelectedCurrency}: CurrencySwitcher) {
   const [open, setOpen] = React.useState(false)
   return (
       <Popover open={open} onOpenChange={setOpen}>

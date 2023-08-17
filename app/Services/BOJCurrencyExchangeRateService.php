@@ -80,7 +80,7 @@ class BOJCurrencyExchangeRateService
         // get exchange rate
         $exchangeRate = $this->getExchangeRatesForCurrency($targetIsoCurrency, $sourceAmount->getCurrency()->getCurrencyCode(), $date);
         // convert to target currency
-        return $sourceAmount->convertedTo($targetIsoCurrency, $exchangeRate->getAmount());
+        return $sourceAmount->convertedTo($targetIsoCurrency, $exchangeRate->getAmount(), new CustomContext(4), RoundingMode::HALF_EVEN);
     }
 
     /**
