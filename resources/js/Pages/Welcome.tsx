@@ -6,7 +6,7 @@ import {UserNav} from "@/Components/ShadcnUI/UserNav";
 import {CalendarDateRangePicker} from "@/Components/ShadcnUI/DateRangePicker";
 import {Button} from "@/Components/ShadcnUI/Button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/Components/ShadcnUI/Tabs";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/Components/ShadcnUI/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/Components/ShadcnUI/Card";
 import {Overview} from "@/Components/ShadcnUI/Overview";
 import {RecentSales} from "@/Components/ShadcnUI/RecentSales";
 
