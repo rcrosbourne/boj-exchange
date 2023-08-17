@@ -18,7 +18,7 @@ use Inertia\Inertia;
 |
 */
 Route::get('/', [\App\Http\Controllers\ExchangeRateController::class, 'index'])->name('welcome');
-Route::post('/convert', [\App\Http\Controllers\ExchangeRateController::class, 'store'])->name('convert');
+Route::post('/', [\App\Http\Controllers\ExchangeRateController::class, 'store'])->name('convert');
 //Route::get('/', function () {
 
 //    return Inertia::render('Welcome', [

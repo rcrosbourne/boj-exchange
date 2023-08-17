@@ -10,6 +10,7 @@ use Brick\Money\Exception\CurrencyConversionException;
 use Brick\Money\ExchangeRateProvider;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class BOJExchangeRateProvider implements ExchangeRateProvider
 {
@@ -40,8 +41,18 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
     public function getExchangeRate(string $sourceCurrencyCode, string $targetCurrencyCode): BigNumber|int|float|string
     {
         // All exchange rates are relative to JMD (Jamaican Dollar).
+        $cacheKey = 'exchange_rate_'.$sourceCurrencyCode.'_'.$targetCurrencyCode.'_'.$this->startDate->format('Y-m-d');
         if ($sourceCurrencyCode === 'JMD') {
-            $exchangeRate = ExchangeRate::where('date', '>=', $this->startDate)->where('currency', $targetCurrencyCode)->first();
+            // Check if exchange rate is cached for the data
+            $exchangeRate = null;
+            if(Cache::has($cacheKey)) {
+                $exchangeRate = Cache::get($cacheKey);
+            } else {
+                $exchangeRate = ExchangeRate::where('date', '>=', $this->startDate)->where('currency', $targetCurrencyCode)->first();
+                // Cache exchangeRate
+                Cache::put($cacheKey, $exchangeRate, 60*60*24);
+            }
+            // Cache exchangeRate
             if (! $exchangeRate) {
                 throw CurrencyConversionException::exchangeRateNotAvailable($sourceCurrencyCode, $targetCurrencyCode, 'Missing exchange rate for '.$targetCurrencyCode.' on '.$this->startDate->format('Y-m-d'));
             }

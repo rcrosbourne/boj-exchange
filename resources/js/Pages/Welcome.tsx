@@ -28,7 +28,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
     async function update() {
         if (!sourceAmount) return;
         console.log({sourceAmount, sourceCurrency, targetCurrency, exchangeRateDate});
-        router.post('/convert', {
+        router.post(route('convert'), {
             'source_currency_code': sourceCurrency,
             'source_amount': sourceAmount,
             'target_currency_code': targetCurrency,
