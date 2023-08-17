@@ -25,7 +25,14 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
     {
         if (! Arr::has($config, 'start_date') || Arr::get($config, 'start_date') === null) {
             // use the date of the last record in the database
-            $this->startDate = Carbon::parse(ExchangeRate::max('date'))->startOfDay();
+            // Cache max date
+            if(Cache::has('max_date')) {
+                $this->startDate = Cache::get('max_date');
+            } else {
+                $this->startDate = Carbon::parse(ExchangeRate::max('date'))->startOfDay();
+                // Cache max date
+                Cache::put('max_date', $this->startDate, 60*60*24);
+            }
         } else {
             $dateEntered = Carbon::createFromFormat('Y-m-d', $config['start_date']);
             $this->startDate = $dateEntered->startOfDay();
@@ -52,11 +59,9 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
                 // Cache exchangeRate
                 Cache::put($cacheKey, $exchangeRate, 60*60*24);
             }
-            // Cache exchangeRate
             if (! $exchangeRate) {
                 throw CurrencyConversionException::exchangeRateNotAvailable($sourceCurrencyCode, $targetCurrencyCode, 'Missing exchange rate for '.$targetCurrencyCode.' on '.$this->startDate->format('Y-m-d'));
             }
-
             return $exchangeRate->sell_price;
         }
         // throw exception we are only supporting JMD as the base currency
