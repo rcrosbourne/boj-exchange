@@ -11,7 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/Components/ShadcnUI/Popover";
-export function DatePicker({date, setDate}: {date: Date|undefined, setDate: (date: Date|undefined) => void}) {
+export function DatePicker({className, date, setDate}: {className: string, date: Date|undefined, setDate: (date: Date|undefined) => void}) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -19,7 +19,7 @@ export function DatePicker({date, setDate}: {date: Date|undefined, setDate: (dat
           variant={"outline"}
           className={cn(
             "w-[280px] justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            !date && "text-muted-foreground", className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />

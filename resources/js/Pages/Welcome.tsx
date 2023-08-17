@@ -48,7 +48,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
     }
     return (
         <>
-            <div className="hidden flex-col md:flex">
+            <div className="flex-col md:flex max-w-4xl">
                 <div className="flex-1 space-y-4 p-8 pt-6">
                     <div className="flex items-center justify-between space-y-2">
                         <h2 className="text-3xl font-bold tracking-tight">Bank of Jamaica - Exchange Rates</h2>
@@ -63,28 +63,32 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
                                           selectedCurrency={sourceCurrency}
                                           setSelectedCurrency={setSourceCurrency}/>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <p>Converted to</p>
-                        <CurrencySwitcher supportedCurrencies={supportedCurrencies}
-                                          defaultCurrency={'USD'}
-                                          selectedCurrency={targetCurrency}
-                                          setSelectedCurrency={setTargetCurrency}/>
-                        <p>using counter rates on </p>
-                        <DatePicker date={exchangeRateDate} setDate={setExchangeRateDate}/>
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4 items-center">
+                        <div className="flex col-span-2 items-center gap-2">
+                            <p className="flex-1">Converted to</p>
+                            <CurrencySwitcher supportedCurrencies={supportedCurrencies}
+                                              defaultCurrency={'USD'}
+                                              selectedCurrency={targetCurrency}
+                                              setSelectedCurrency={setTargetCurrency}/>
+                        </div>
+                        <p className="col-span-2 md:col-span-1">using counter rates on </p>
+                        <div className="col-span-2 md:col-span-1 w-full">
+                            <DatePicker className="w-full" date={exchangeRateDate} setDate={setExchangeRateDate}/>
+                        </div>
                     </div>
                     {isLoading &&
                         <div className="border rounded-lg p-6">
                             <div className="flex items-center space-x-4">
                                 <div className="space-y-2">
-                                    <Skeleton className="h-8 w-[180px]"/>
-                                    <Skeleton className="h-4 w-[500px]"/>
-                                    <Skeleton className="h-4 w-[500px]"/>
+                                    <Skeleton className="h-8 w-[90px] md:w-[180px]"/>
+                                    <Skeleton className="h-4 w-[150px] md:w-[500px]"/>
+                                    <Skeleton className="h-4 w-[150px] md:w-[500px]"/>
                                 </div>
                             </div>
                             <Skeleton className="h-4 w-full mt-10"/>
                         </div>
                     }
-                    {!isLoading && <Card>
+                    {!isLoading && sourceAmount && <Card>
                         <CardHeader>
                             <CardTitle>{currencyFormatter(targetCurrency).format(targetAmount)}</CardTitle>
                             <CardDescription>
@@ -97,7 +101,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
                             <div className="flex flex-col space-y-2">
                                 <div className="flex justify-between">
                                     <p>Exchange Rate</p>
-                                    <p>1 {sourceCurrency} = {currencyFormatter(targetCurrency).format(exchangeRate)} {targetCurrency}</p>
+                                    <p>1 {sourceCurrency} = {currencyFormatter(targetCurrency).format(exchangeRate)}</p>
                                 </div>
                             </div>
                         </CardContent>
