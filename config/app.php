@@ -184,7 +184,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // 'Example' => App\Facades\Example::class,
+        //         'Redis' => Illuminate\Support\Facades\Redis::class,
     ])->toArray(),
 
     'boj_base_url' => 'https://boj.org.jm',

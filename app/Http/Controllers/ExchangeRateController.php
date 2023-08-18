@@ -21,7 +21,7 @@ class ExchangeRateController extends Controller
         $supportedCurrencies = CurrencyExchangeRateService::getSupportedCurrencies();
 
         return Inertia::render('Welcome', [
-            'supportedCurrencies' => $supportedCurrencies,
+            'supportedCurrencies' => ['JMD', 'USD'], //$supportedCurrencies,
         ]);
     }
 
@@ -45,14 +45,14 @@ class ExchangeRateController extends Controller
         $exchangeRate = CurrencyExchangeRateService::getExchangeRatesForCurrency($targetCurrencyCode, $sourceCurrencyCode, $exchangeRateDate);
         $sourceAsMoney = Money::of($sourceAmount, $sourceCurrencyCode);
         $targetAmount = CurrencyExchangeRateService::convertTo($targetCurrencyCode, $sourceAsMoney, $exchangeRateDate);
-        Log::info('Exchange Rate', [
-            'source_currency_code' => $sourceCurrencyCode,
-            'source_amount' => $sourceAmount,
-            'target_currency_code' => $targetCurrencyCode,
-            'target_amount' => $targetAmount->getAmount()->toFloat(),
-            'exchange_rate_date' => $exchangeRateDate,
-            'exchange_rate' => $exchangeRate->getAmount()->toFloat(),
-        ]);
+        //        Log::info('Exchange Rate', [
+        //            'source_currency_code' => $sourceCurrencyCode,
+        //            'source_amount' => $sourceAmount,
+        //            'target_currency_code' => $targetCurrencyCode,
+        //            'target_amount' => $targetAmount->getAmount()->toFloat(),
+        //            'exchange_rate_date' => $exchangeRateDate,
+        //            'exchange_rate' => $exchangeRate->getAmount()->toFloat(),
+        //        ]);
         return Inertia::render('Welcome', [
             'supportedCurrencies' => CurrencyExchangeRateService::getSupportedCurrencies(),
             'sourceCurrencyCode' => $sourceCurrencyCode,

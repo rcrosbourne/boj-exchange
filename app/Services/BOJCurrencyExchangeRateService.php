@@ -17,10 +17,12 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class BOJCurrencyExchangeRateService
 {
@@ -48,6 +50,7 @@ class BOJCurrencyExchangeRateService
 
     /**
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function getExchangeRatesForCurrency(string $source, string $target, string $startDate = null, string $endDate = null): Money
     {
@@ -74,6 +77,7 @@ class BOJCurrencyExchangeRateService
      * @throws MathException
      * @throws UnknownCurrencyException
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function convertTo(string $targetIsoCurrency, Money $sourceAmount, string $date = null): Money
     {
@@ -155,10 +159,18 @@ class BOJCurrencyExchangeRateService
     {
         // Get a distinct list of currencies
         // from the exchange rates table
-        return ExchangeRate::distinct('currency')
+        // this needs to be cached
+        $cacheKey = 'supported_currencies_'.Carbon::now()->format('Y-m-d');
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+        $supportedCurrencies = ExchangeRate::distinct('currency')
             ->pluck('currency')
             ->push('JMD')
             ->sort()->values()->toArray();
+        Cache::set($cacheKey, $supportedCurrencies);
+
+        return $supportedCurrencies;
     }
 
     /**
