@@ -18,10 +18,8 @@ class ExchangeRateController extends Controller
      */
     public function index()
     {
-        $supportedCurrencies = CurrencyExchangeRateService::getSupportedCurrencies();
-
         return Inertia::render('Welcome', [
-            'supportedCurrencies' => ['JMD', 'USD'], //$supportedCurrencies,
+            'supportedCurrencies' => CurrencyExchangeRateService::getSupportedCurrencies()
         ]);
     }
 
