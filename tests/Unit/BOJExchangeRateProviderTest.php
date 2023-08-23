@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\ExchangeRateType;
 use App\Facades\CurrencyExchangeRateService;
 use App\Models\ExchangeRate;
 use Brick\Money\Exception\CurrencyConversionException;
@@ -74,20 +75,20 @@ it('can convert between USD and GBP through JMD', function () {
 });
 it('can retrieves supported currencies', function () {
     // Given I have some exchange records
-    $usdExchangeRate = ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'USD',
         'buy_price' => '153.3627',
         'sell_price' => '155.8292',
     ]);
-    $gbpExchangeRate = ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'GBP',
         'buy_price' => '186.5375',
         'sell_price' => '193.3157',
 
     ]);
-    $cadExchangeRate = ExchangeRate::create([
+    ExchangeRate::create([
         'date' => '2022-06-01',
         'currency' => 'CAD',
         'buy_price' => '120.5375',
@@ -102,4 +103,21 @@ it('can retrieves supported currencies', function () {
         ->and($supportedCurrencies)->toContain('CAD')
         ->and($supportedCurrencies)->toContain('JMD')
         ->and($supportedCurrencies)->not()->toContain('EUR');
+});
+
+it('can convert between currencies using different rate types', function () {
+    ExchangeRate::create([
+        'date' => '2022-06-01',
+        'currency' => 'USD',
+        'buy_price' => '153.8750',
+        'sell_price' => '155.5214',
+        'notes' => '146.18',
+    ]);
+    $usd = Money::of(1000, 'USD');
+    $convertToJmdUsingCashBuyRate = CurrencyExchangeRateService::convertTo('JMD', $usd, '2022-06-01', exchangeRateType: ExchangeRateType::CASH_BUYING_RATE);
+    $convertToJmdUsingChequeBuyRate = CurrencyExchangeRateService::convertTo('JMD', $usd, '2022-06-01', exchangeRateType: ExchangeRateType::CHEQUE_BUYING_RATE);
+    $convertToJmdUsingSellingRate = CurrencyExchangeRateService::convertTo('JMD', $usd, '2022-06-01');
+    expect($convertToJmdUsingCashBuyRate->getAmount()->toFloat())->toBe(146180.00)
+        ->and($convertToJmdUsingChequeBuyRate->getAmount()->toFloat())->toBe(153875.00)
+        ->and($convertToJmdUsingSellingRate->getAmount()->toFloat())->toBe(155521.40);
 });
