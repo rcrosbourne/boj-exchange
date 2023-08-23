@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ExchangeRateType;
 use App\Models\ExchangeRate;
 use Brick\Math\Exception\MathException;
 use Brick\Math\RoundingMode;
@@ -52,11 +53,12 @@ class BOJCurrencyExchangeRateService
      * @throws Exception
      * @throws InvalidArgumentException
      */
-    public function getExchangeRatesForCurrency(string $source, string $target, string $startDate = null, string $endDate = null): Money
+    public function getExchangeRatesForCurrency(string $source, string $target, string $startDate = null, string $endDate = null, ExchangeRateType $exchangeRateType = ExchangeRateType::SELLING_RATE): Money
     {
         $exchangeRateProvider = new BOJExchangeRateProvider([
             'start_date' => $startDate,
             'end_date' => $endDate,
+            'exchange_rate_type' => $exchangeRateType,
         ]);
         // Create base currency provider
         $baseCurrencyProvider = new BaseCurrencyProvider($exchangeRateProvider, self::BASE_CURRENCY);
@@ -66,23 +68,21 @@ class BOJCurrencyExchangeRateService
     }
 
     /**
-     * Converts the source amount to the specified target currency.
+     * Convert the source amount to the target ISO currency using the specified exchange rate.
      *
-     * @param  string  $targetIsoCurrency The ISO code of the target currency.
-     * @param  Money  $sourceAmount The source amount to be converted.
-     * @param  string|null  $date (Optional) The date for which the exchange rate should be fetched.
-     *                          If not provided, the current date will be used.
+     * @param string $targetIsoCurrency The target ISO currency code.
+     * @param Money $sourceAmount The source amount money object.
+     * @param string|null $date The date of the exchange rate. Defaults to null.
+     * @param ExchangeRateType $exchangeRateType The exchange rate type. Defaults to ExchangeRateType::SELLING_RATE.
      * @return Money The converted amount in the target currency.
-     *
+     * @throws InvalidArgumentException
      * @throws MathException
      * @throws UnknownCurrencyException
-     * @throws Exception
-     * @throws InvalidArgumentException
      */
-    public function convertTo(string $targetIsoCurrency, Money $sourceAmount, string $date = null): Money
+    public function convertTo(string $targetIsoCurrency, Money $sourceAmount, string $date = null, ExchangeRateType $exchangeRateType = ExchangeRateType::SELLING_RATE): Money
     {
         // get exchange rate
-        $exchangeRate = $this->getExchangeRatesForCurrency($targetIsoCurrency, $sourceAmount->getCurrency()->getCurrencyCode(), $date);
+        $exchangeRate = $this->getExchangeRatesForCurrency($targetIsoCurrency, $sourceAmount->getCurrency()->getCurrencyCode(), $date, exchangeRateType: $exchangeRateType);
         // convert to target currency
         return $sourceAmount->convertedTo($targetIsoCurrency, $exchangeRate->getAmount(), new CustomContext(4), RoundingMode::HALF_EVEN);
     }

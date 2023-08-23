@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\ExchangeRateType;
 use App\Facades\CurrencyExchangeRateService;
 use App\Models\ExchangeRate;
 use Brick\Money\Money;
@@ -33,6 +34,7 @@ class ExchangeRateController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * @throws \Exception
      */
     public function store(Request $request)
     {
@@ -40,9 +42,11 @@ class ExchangeRateController extends Controller
         $sourceAmount = $request->input('source_amount');
         $targetCurrencyCode = $request->input('target_currency_code');
         $exchangeRateDate = $request->input('exchange_rate_date');
-        $exchangeRate = CurrencyExchangeRateService::getExchangeRatesForCurrency($targetCurrencyCode, $sourceCurrencyCode, $exchangeRateDate);
+        $exchangeRateType = ExchangeRateType::fromString($request->input('exchange_rate_type'));
+
+        $exchangeRate = CurrencyExchangeRateService::getExchangeRatesForCurrency($targetCurrencyCode, $sourceCurrencyCode, $exchangeRateDate, exchangeRateType: $exchangeRateType);
         $sourceAsMoney = Money::of($sourceAmount, $sourceCurrencyCode);
-        $targetAmount = CurrencyExchangeRateService::convertTo($targetCurrencyCode, $sourceAsMoney, $exchangeRateDate);
+        $targetAmount = CurrencyExchangeRateService::convertTo($targetCurrencyCode, $sourceAsMoney, $exchangeRateDate, exchangeRateType: $exchangeRateType);
         //        Log::info('Exchange Rate', [
         //            'source_currency_code' => $sourceCurrencyCode,
         //            'source_amount' => $sourceAmount,

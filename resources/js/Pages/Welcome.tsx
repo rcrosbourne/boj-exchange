@@ -6,7 +6,9 @@ import {DatePicker} from "@/Components/ShadcnUI/DatePicker";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/Components/ShadcnUI/Card";
 import {router, usePage} from '@inertiajs/react'
 import {Skeleton} from "@/Components/ShadcnUI/Skeleton";
-
+import {RadioGroup, RadioGroupItem} from "@/Components/ShadcnUI/RadioGroup";
+import {Label} from "@/Components/ShadcnUI/Label";
+type ExchangeRateType = 'selling_rate' | 'cheque_buying_rate' | 'cash_buying_rate';
 export default function Welcome({supportedCurrencies, targetAmount, exchangeRate}: PageProps) {
     const {errors} = usePage().props
 
@@ -15,6 +17,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
     const [targetCurrency, setTargetCurrency] = React.useState('JMD')
     const [exchangeRateDate, setExchangeRateDate] = React.useState<Date | undefined>(new Date())
     const [isLoading, setIsLoading] = React.useState(false);
+    const [exchangeRateType, setExchangeRateType] = React.useState<ExchangeRateType>('selling_rate');
     // const [conversionRate, setConversionRate] = React.useState("");
     // const [targetAmount, setTargetAmount] = React.useState("");
 
@@ -24,6 +27,16 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
     router.on('finish', (event) => {
         setIsLoading(false)
     });
+    function formatExchangeRateType(type: ExchangeRateType) {
+        switch (type) {
+            case "selling_rate":
+                return "selling";
+            case "cheque_buying_rate":
+                return "buy (cheque)";
+            case "cash_buying_rate":
+                return "buy (cash)";
+        }
+    }
 
     async function update() {
         if (!sourceAmount) return;
@@ -32,13 +45,14 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
             'source_currency_code': sourceCurrency,
             'source_amount': sourceAmount,
             'target_currency_code': targetCurrency,
-            'exchange_rate_date': exchangeRateDate?.toISOString().split('T')[0]
+            'exchange_rate_date': exchangeRateDate?.toISOString().split('T')[0],
+            'exchange_rate_type': exchangeRateType,
         });
     }
 
     useEffect(() => {
         void update();
-    }, [sourceAmount, sourceCurrency, targetCurrency, exchangeRateDate])
+    }, [sourceAmount, sourceCurrency, targetCurrency, exchangeRateDate, exchangeRateType])
 
     function currencyFormatter(currency: string) {
         return new Intl.NumberFormat('en-US', {
@@ -46,6 +60,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
             currency,
         });
     }
+
     return (
         <>
             <div className="flex-col md:flex max-w-4xl">
@@ -71,8 +86,25 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
                                               selectedCurrency={targetCurrency}
                                               setSelectedCurrency={setTargetCurrency}/>
                         </div>
-                        <p className="col-span-2 md:col-span-1">using counter rates on </p>
-                        <div className="col-span-2 md:col-span-1 w-full">
+                        <div className="border-2 border-b border-slate-100 col-span-2 mt-3 rounded md:hidden" />
+                        <div className="col-span-2 md:col-span-1 md:mx-auto"> <p className="text-lg">using</p></div>
+                        <RadioGroup className="col-span-2 md:col-span-1" defaultValue="selling_rate" onValueChange={ e =>  setExchangeRateType(e as ExchangeRateType)}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="selling_rate" id="selling_rate"/>
+                                <Label htmlFor="selling_rate">Selling Rate</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="cheque_buying_rate" id="cheque_buying_rate"/>
+                                <Label htmlFor="cheque_buying_rate">Buying Rate (Cheque)</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="cash_buying_rate" id="cash_buying_rate"/>
+                                <Label htmlFor="cash_buying_rate">Buying Rate (Cash)</Label>
+                            </div>
+                        </RadioGroup>
+                        <div className="border-2 border-b border-slate-100 col-span-2 mt-3 rounded md:hidden" />
+                        <div className="col-span-2 md:col-span-1 w-full flex items-center gap-2 mt-3">
+                                <p>on</p>
                             <DatePicker className="w-full" date={exchangeRateDate} setDate={setExchangeRateDate}/>
                         </div>
                     </div>
@@ -93,7 +125,7 @@ export default function Welcome({supportedCurrencies, targetAmount, exchangeRate
                             <CardTitle>{currencyFormatter(targetCurrency).format(targetAmount)}</CardTitle>
                             <CardDescription>
                                 <p>{currencyFormatter(sourceCurrency).format(parseFloat(sourceAmount))} {sourceCurrency} converted
-                                    to {targetCurrency} using the BOJ rates
+                                    to {targetCurrency} using the BOJ {formatExchangeRateType(exchangeRateType)} rates
                                     for {exchangeRateDate && exchangeRateDate >= new Date() ? "today" : exchangeRateDate?.toDateString()}</p>
                             </CardDescription>
                         </CardHeader>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ExchangeRateType;
 use App\Models\ExchangeRate;
 use Brick\Math\BigNumber;
 use Brick\Money\Exception\CurrencyConversionException;
@@ -20,6 +21,8 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
     protected Carbon $startDate;
 
     protected ?Carbon $endDate;
+
+    protected ExchangeRateType $exchangeRateType;
 
     /**
      * @throws Exception|InvalidArgumentException
@@ -43,6 +46,7 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
         $this->endDate = Arr::has($config, 'end_date') && Arr::get($config, 'end_date') !== null
             ? Carbon::createFromFormat('Y-m-d', Arr::get($config, 'end_date'))->endOfDay()
             : $this->startDate->copy()->endOfDay();
+        $this->exchangeRateType = Arr::has($config, 'exchange_rate_type') ? Arr::get($config, 'exchange_rate_type') : ExchangeRateType::SELLING_RATE;
     }
 
     /**
@@ -64,7 +68,6 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
         ]);
         if ($sourceCurrencyCode === 'JMD') {
             // Check if exchange rate is cached for the data
-            $exchangeRate = null;
             if (Cache::has($cacheKey)) {
                 $exchangeRate = Cache::get($cacheKey);
             } else {
@@ -78,8 +81,11 @@ class BOJExchangeRateProvider implements ExchangeRateProvider
             if (! $exchangeRate) {
                 throw CurrencyConversionException::exchangeRateNotAvailable($sourceCurrencyCode, $targetCurrencyCode, 'Missing exchange rate for '.$targetCurrencyCode.' on '.$this->startDate->format('Y-m-d'));
             }
-
-            return $exchangeRate->sell_price;
+            return match($this->exchangeRateType) {
+                ExchangeRateType::CASH_BUYING_RATE=> $exchangeRate->notes,
+                ExchangeRateType::CHEQUE_BUYING_RATE => $exchangeRate->buy_price,
+                ExchangeRateType::SELLING_RATE => $exchangeRate->sell_price,
+            };
         }
         // throw exception we are only supporting JMD as the base currency
         throw CurrencyConversionException::exchangeRateNotAvailable($sourceCurrencyCode, $targetCurrencyCode, 'Missing exchange rate for '.$sourceCurrencyCode.' on '.$this->startDate);
